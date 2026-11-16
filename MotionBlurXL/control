@@ -1,0 +1,9 @@
+Package: com.xiaolan.motionblurxl
+Name: 小兰动态模糊
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: 可调动态模糊 + 强度记忆 + 左上角水印 + 卡密验证 + 断网联网闪退
+Maintainer: 小兰
+Author: 小兰
+Section: Tweaks
+Depends: mobilesubstrate
