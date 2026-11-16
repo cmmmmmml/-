@@ -1,22 +1,26 @@
 name: build
 on: [push, workflow_dispatch]
 jobs:
-  b:
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          export THEOS=$RUNNER_TEMP/theos
-          git clone --depth 1 https://github.com/theos/theos.git $THEOS
-          echo "THEOS=$THEOS" >> $GITHUB_ENV
-          echo "$THEOS/bin" >> $GITHUB_PATH
-          brew install ldid || true
-      - run: |
-          cd MotionBlurXL
-          make package FINALPACKAGE=1
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dylib
-          path: |
-            MotionBlurXL/.theos/obj/**/*.dylib
-            MotionBlurXL/packages/*.deb
+  b:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq clang lld make xz-utils git curl
+          export THEOS=$HOME/theos
+          git clone --depth 1 https://github.com/theos/theos.git $THEOS
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git /tmp/sdks
+          cd /tmp/sdks && git sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p $THEOS/sdks && cp -r iPhoneOS16.5.sdk $THEOS/sdks/
+          curl -fsSL -o /usr/local/bin/ldid https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_linux_x86_64
+          sudo chmod +x /usr/local/bin/ldid
+          echo "THEOS=$THEOS" >> $GITHUB_ENV
+          echo "$THEOS/bin" >> $GITHUB_PATH
+      - run: |
+          cd MotionBlurXL
+          make package FINALPACKAGE=1 LDFLAGS="-fuse-ld=lld"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dylib
+          path: MotionBlurXL/.theos/obj/**/*.dylib
